@@ -10,7 +10,7 @@ import android.provider.MediaStore;
 import android.support.v4.content.AsyncTaskLoader;
 import android.util.Log;
 
-import com.radomar.facebooklogin.fragments.FacebookFragment;
+import com.radomar.facebooklogin.global.Constants;
 import com.radomar.facebooklogin.model.ImageModel;
 
 import java.io.ByteArrayOutputStream;
@@ -23,15 +23,13 @@ import java.io.InputStream;
  */
 public class ImageLoader extends AsyncTaskLoader<ImageModel> {
 
-    private Context mContext;
     private Uri mUri;
     private final static String TAG = "sometag";
 
     public ImageLoader(Context context, Bundle args) {
         super(context);
-        mContext = context;
         if (args != null) {
-            mUri = args.getParcelable(FacebookFragment.LOADER_URI_KEY);
+            mUri = args.getParcelable(Constants.LOADER_URI_KEY);
             Log.d(TAG, this + "constructor, new Uri");
         }
     }
@@ -47,7 +45,7 @@ public class ImageLoader extends AsyncTaskLoader<ImageModel> {
     private byte[] getByteArrayFromImage() {
         InputStream inputStream = null;
         try {
-            inputStream = mContext.getContentResolver().openInputStream(mUri);
+            inputStream = getContext().getContentResolver().openInputStream(mUri);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -105,7 +103,7 @@ public class ImageLoader extends AsyncTaskLoader<ImageModel> {
 
     private String getRealPathFromURI(Uri contentURI) {
         String result;
-        Cursor cursor = mContext.getContentResolver().query(contentURI, null, null, null, null);
+        Cursor cursor = getContext().getContentResolver().query(contentURI, null, null, null, null);
         if (cursor == null) {
             result = contentURI.getPath();
         } else {

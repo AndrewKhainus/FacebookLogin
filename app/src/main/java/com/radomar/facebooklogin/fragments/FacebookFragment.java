@@ -28,6 +28,7 @@ import com.facebook.HttpMethod;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
 import com.radomar.facebooklogin.R;
+import com.radomar.facebooklogin.global.Constants;
 import com.radomar.facebooklogin.interfaces.ActionListener;
 import com.radomar.facebooklogin.interfaces.GetCallbackInterface;
 import com.radomar.facebooklogin.interfaces.StartAddAndRemoveListener;
@@ -43,11 +44,7 @@ import org.json.JSONException;
 public class FacebookFragment extends Fragment implements ActionListener,
                                                           View.OnClickListener,
                                                           LoaderManager.LoaderCallbacks<ImageModel> {
-    private static final int Pick_image = 1;
-    private static final int BYTE_ARRAY_LOADER_ID = 100;
-    private static final String URI_KEY = "uri_key";
-    public static final String LOADER_URI_KEY = "uri_key2";
-    public static final String TAG = "sometag";
+
 
     private StartAddAndRemoveListener mStartAddAndRemoveListener;
     private GetCallbackInterface mGetCallbackInterface;
@@ -63,7 +60,6 @@ public class FacebookFragment extends Fragment implements ActionListener,
 
     private Uri mImageUri;
     private byte[] mByteArray;
-
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -98,8 +94,6 @@ public class FacebookFragment extends Fragment implements ActionListener,
         mStartAddAndRemoveListener.StartRemoveListener(this);
     }
 
-
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
@@ -123,8 +117,8 @@ public class FacebookFragment extends Fragment implements ActionListener,
             getUserInfoRequest();
         }
 
-        if (getLoaderManager().getLoader(BYTE_ARRAY_LOADER_ID) != null) {
-            Log.d(TAG, "onCreate initImageLoader");
+        if (getLoaderManager().getLoader(Constants.BYTE_ARRAY_LOADER_ID) != null) {
+            Log.d(Constants.TAG, "onCreate initImageLoader");
             initImageLoader();
         }
     }
@@ -164,15 +158,15 @@ public class FacebookFragment extends Fragment implements ActionListener,
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if(requestCode == Pick_image && resultCode == Activity.RESULT_OK && data != null && data.getData() != null) {
+        if(requestCode == Constants.PICK_IMAGE && resultCode == Activity.RESULT_OK && data != null && data.getData() != null) {
             mImageUri = data.getData();
             Bundle bundle = new Bundle();
-            bundle.putParcelable(LOADER_URI_KEY, mImageUri);
+            bundle.putParcelable(Constants.LOADER_URI_KEY, mImageUri);
 
-            if (getLoaderManager().getLoader(BYTE_ARRAY_LOADER_ID) != null) {
-                getLoaderManager().restartLoader(BYTE_ARRAY_LOADER_ID, bundle, this).forceLoad();
+            if (getLoaderManager().getLoader(Constants.BYTE_ARRAY_LOADER_ID) != null) {
+                getLoaderManager().restartLoader(Constants.BYTE_ARRAY_LOADER_ID, bundle, this).forceLoad();
             } else {
-                getLoaderManager().initLoader(BYTE_ARRAY_LOADER_ID, bundle, this).forceLoad();
+                getLoaderManager().initLoader(Constants.BYTE_ARRAY_LOADER_ID, bundle, this).forceLoad();
             }
         } else {
             mCallbackManager.onActivityResult(requestCode, resultCode, data);
@@ -198,7 +192,7 @@ public class FacebookFragment extends Fragment implements ActionListener,
     private void addImage() {
         Intent intent = new Intent(Intent.ACTION_PICK);
         intent.setType("image/*");
-        startActivityForResult(intent, Pick_image);
+        startActivityForResult(intent, Constants.PICK_IMAGE);
     }
 
     private void getUserInfo(GraphResponse response) {
@@ -244,7 +238,7 @@ public class FacebookFragment extends Fragment implements ActionListener,
 
     @Override
     public void doAction(GraphResponse response) {
-        Log.d(TAG, response.toString());
+        Log.d(Constants.TAG, response.toString());
         getUserInfo(response);
 
     }
@@ -258,7 +252,7 @@ public class FacebookFragment extends Fragment implements ActionListener,
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         if (mImageUri != null) {
-            outState.putParcelable(URI_KEY, mImageUri);
+            outState.putParcelable(Constants.URI_KEY, mImageUri);
         }
     }
 
@@ -266,7 +260,7 @@ public class FacebookFragment extends Fragment implements ActionListener,
     public void onViewStateRestored(Bundle savedInstanceState) {
         super.onViewStateRestored(savedInstanceState);
         if (savedInstanceState != null) {
-            mImageUri = savedInstanceState.getParcelable(URI_KEY);
+            mImageUri = savedInstanceState.getParcelable(Constants.URI_KEY);
         }
 
     }
@@ -274,10 +268,10 @@ public class FacebookFragment extends Fragment implements ActionListener,
     @Override
     public Loader<ImageModel> onCreateLoader(int id, Bundle args) {
         Loader<ImageModel> mLoader = null;
-        // условие можно убрать, если вы используете только один загрузчик
-        if (id == BYTE_ARRAY_LOADER_ID) {
+
+        if (id == Constants.BYTE_ARRAY_LOADER_ID) {
             mLoader = new ImageLoader(getActivity(), args);
-            Log.d(TAG, "onCreateLoader" + mLoader);
+            Log.d(Constants.TAG, "onCreateLoader" + mLoader);
         }
         return mLoader;
     }
@@ -285,7 +279,7 @@ public class FacebookFragment extends Fragment implements ActionListener,
 
     @Override
     public void onLoadFinished(Loader<ImageModel> loader, ImageModel data) {
-        Log.d(TAG, loader + "onLoadFinished");
+        Log.d(Constants.TAG, loader + "onLoadFinished");
         mIvSelectedImage.setImageBitmap(data.imageBitmap);
         mByteArray = data.bytes;
         Toast.makeText(getActivity(), "work finished", Toast.LENGTH_SHORT).show();
@@ -299,7 +293,7 @@ public class FacebookFragment extends Fragment implements ActionListener,
     private void initImageLoader() {
         Bundle bundle = new Bundle();
         bundle.putParcelable("uri", mImageUri);
-        getLoaderManager().initLoader(BYTE_ARRAY_LOADER_ID, bundle, this);
+        getLoaderManager().initLoader(Constants.BYTE_ARRAY_LOADER_ID, bundle, this);
     }
 
 }
