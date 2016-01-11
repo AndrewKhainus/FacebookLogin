@@ -1,13 +1,14 @@
 package com.radomar.facebooklogin.fragments;
 
 import android.app.Activity;
+
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.Loader;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,6 +17,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
@@ -29,24 +31,23 @@ import com.radomar.facebooklogin.R;
 import com.radomar.facebooklogin.interfaces.ActionListener;
 import com.radomar.facebooklogin.interfaces.GetCallbackInterface;
 import com.radomar.facebooklogin.interfaces.StartAddAndRemoveListener;
+import com.radomar.facebooklogin.model.ImageModel;
+import com.radomar.facebooklogin.task.ImageLoader;
 import com.squareup.picasso.Picasso;
 
 import org.json.JSONException;
-
-import java.io.ByteArrayOutputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.text.MessageFormat;
 
 /**
  * Created by Radomar on 05.01.2016
  */
 public class FacebookFragment extends Fragment implements ActionListener,
-                                                          View.OnClickListener {
-
+                                                          View.OnClickListener,
+                                                          LoaderManager.LoaderCallbacks<ImageModel> {
     private static final int Pick_image = 1;
-    public static final String IMAGE_URI = "imageUri";
+    private static final int BYTE_ARRAY_LOADER_ID = 100;
+    private static final String URI_KEY = "uri_key";
+    public static final String LOADER_URI_KEY = "uri_key2";
+    public static final String TAG = "sometag";
 
     private StartAddAndRemoveListener mStartAddAndRemoveListener;
     private GetCallbackInterface mGetCallbackInterface;
@@ -54,14 +55,14 @@ public class FacebookFragment extends Fragment implements ActionListener,
     private LoginButton mLoginButton;
     private CallbackManager mCallbackManager;
     private ImageView mImageViewPictureUser;
-    private ImageView mSelectedImage;
+    private ImageView mIvSelectedImage;
     private EditText mShareText;
     private TextView mUserInfo;
     private Button mShare;
     private Button mBtSelectImage;
 
     private Uri mImageUri;
-
+    private byte[] mByteArray;
 
 
     @Override
@@ -69,7 +70,6 @@ public class FacebookFragment extends Fragment implements ActionListener,
         super.onCreate(savedInstanceState);
         FacebookSdk.sdkInitialize(getActivity());
         mCallbackManager = CallbackManager.Factory.create();
-
     }
 
     @Override
@@ -98,6 +98,8 @@ public class FacebookFragment extends Fragment implements ActionListener,
         mStartAddAndRemoveListener.StartRemoveListener(this);
     }
 
+
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
@@ -120,6 +122,11 @@ public class FacebookFragment extends Fragment implements ActionListener,
         if(AccessToken.getCurrentAccessToken() != null) {
             getUserInfoRequest();
         }
+
+        if (getLoaderManager().getLoader(BYTE_ARRAY_LOADER_ID) != null) {
+            Log.d(TAG, "onCreate initImageLoader");
+            initImageLoader();
+        }
     }
 
     @Override
@@ -139,7 +146,7 @@ public class FacebookFragment extends Fragment implements ActionListener,
         Bundle params = new Bundle();
 
         if(mImageUri != null){
-            params.putByteArray("source", readBytes(mImageUri));
+            params.putByteArray("source", mByteArray);
             permissions = "me/photos";
         }
 
@@ -154,37 +161,19 @@ public class FacebookFragment extends Fragment implements ActionListener,
         ).executeAsync();
     }
 
-    public byte[] readBytes(Uri uri) {
-        InputStream inputStream = null;
-        try {
-            inputStream = getActivity().getContentResolver().openInputStream(uri);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-
-        ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
-
-        int bufferSize = 4096;
-        byte[] buffer = new byte[bufferSize];
-
-        int len;
-        try {
-            while ((len = inputStream.read(buffer)) != -1) {
-                byteBuffer.write(buffer, 0, len);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return byteBuffer.toByteArray();
-    }
-
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if(requestCode == Pick_image && resultCode == Activity.RESULT_OK && data != null && data.getData() != null) {
             mImageUri = data.getData();
-            mSelectedImage.setImageURI(mImageUri);
+            Bundle bundle = new Bundle();
+            bundle.putParcelable(LOADER_URI_KEY, mImageUri);
+
+            if (getLoaderManager().getLoader(BYTE_ARRAY_LOADER_ID) != null) {
+                getLoaderManager().restartLoader(BYTE_ARRAY_LOADER_ID, bundle, this).forceLoad();
+            } else {
+                getLoaderManager().initLoader(BYTE_ARRAY_LOADER_ID, bundle, this).forceLoad();
+            }
         } else {
             mCallbackManager.onActivityResult(requestCode, resultCode, data);
         }
@@ -196,7 +185,7 @@ public class FacebookFragment extends Fragment implements ActionListener,
         mUserInfo = (TextView) view.findViewById(R.id.tvUserInfo_FF);
 
         mBtSelectImage = (Button) view.findViewById(R.id.btSelectPhoto_FF);
-        mSelectedImage = (ImageView) view.findViewById(R.id.ivSelectedImage_FF);
+        mIvSelectedImage = (ImageView) view.findViewById(R.id.ivSelectedImage_FF);
         mShareText = (EditText) view.findViewById(R.id.etTextShare_FF);
         mShare = (Button) view.findViewById(R.id.btShare_FF);
     }
@@ -255,7 +244,7 @@ public class FacebookFragment extends Fragment implements ActionListener,
 
     @Override
     public void doAction(GraphResponse response) {
-        Log.d("sometag", response.toString());
+        Log.d(TAG, response.toString());
         getUserInfo(response);
 
     }
@@ -268,17 +257,50 @@ public class FacebookFragment extends Fragment implements ActionListener,
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putParcelable(IMAGE_URI, mImageUri);
+        if (mImageUri != null) {
+            outState.putParcelable(URI_KEY, mImageUri);
+        }
     }
 
     @Override
     public void onViewStateRestored(Bundle savedInstanceState) {
         super.onViewStateRestored(savedInstanceState);
         if (savedInstanceState != null) {
-            mImageUri = savedInstanceState.getParcelable(IMAGE_URI);
-            mSelectedImage.setImageURI(mImageUri);
+            mImageUri = savedInstanceState.getParcelable(URI_KEY);
         }
 
     }
+
+    @Override
+    public Loader<ImageModel> onCreateLoader(int id, Bundle args) {
+        Loader<ImageModel> mLoader = null;
+        // условие можно убрать, если вы используете только один загрузчик
+        if (id == BYTE_ARRAY_LOADER_ID) {
+            mLoader = new ImageLoader(getActivity(), args);
+            Log.d(TAG, "onCreateLoader" + mLoader);
+        }
+        return mLoader;
+    }
+
+
+    @Override
+    public void onLoadFinished(Loader<ImageModel> loader, ImageModel data) {
+        Log.d(TAG, loader + "onLoadFinished");
+        mIvSelectedImage.setImageBitmap(data.imageBitmap);
+        mByteArray = data.bytes;
+        Toast.makeText(getActivity(), "work finished", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onLoaderReset(Loader<ImageModel> loader) {
+
+    }
+
+    private void initImageLoader() {
+        Bundle bundle = new Bundle();
+        bundle.putParcelable("uri", mImageUri);
+        getLoaderManager().initLoader(BYTE_ARRAY_LOADER_ID, bundle, this);
+    }
+
 }
 
