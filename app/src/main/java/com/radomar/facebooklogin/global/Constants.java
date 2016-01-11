@@ -14,4 +14,7 @@ public final class Constants {
     public static final String FACEBOOK_FRAGMENT_TAG = "facebook_fragment";
     public static final String LOGIN_FRAGMENT_TAG = "login_fragment_tag";
     public static final String REQUEST_FRAGMENT_TAG = "request_fragment_tag";
+
+    public static final String LOGIN_REQUEST_TAG = "login_request_tag";
+    public static final String SHARE_DATA_REQUEST_TAG = "share_data_request_tag";
 }

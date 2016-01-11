@@ -1,4 +1,8 @@
 <resources>
     <string name="app_name">FacebookLogin</string>
     <string name="app_id">470774646457914</string>
+
+    <string name="good_news_everyone">successful published</string>
+    <string name="very_bad">something wrong</string>
+    <string name="no_connection">"check internet connection"</string>
 </resources>

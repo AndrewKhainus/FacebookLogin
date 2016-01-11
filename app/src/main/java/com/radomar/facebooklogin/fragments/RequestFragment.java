@@ -47,4 +47,5 @@ public class RequestFragment extends Fragment implements GraphRequest.Callback {
     public GraphResponse getResponse() {
         return mResponse;
     }
+
 }

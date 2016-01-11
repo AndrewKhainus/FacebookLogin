@@ -2,8 +2,10 @@ package com.radomar.facebooklogin.fragments;
 
 import android.app.Activity;
 
+import android.content.Context;
 import android.content.Intent;
 
+import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -37,6 +39,8 @@ import com.radomar.facebooklogin.task.ImageLoader;
 import com.squareup.picasso.Picasso;
 
 import org.json.JSONException;
+
+import java.io.IOException;
 
 /**
  * Created by Radomar on 05.01.2016
@@ -107,14 +111,11 @@ public class FacebookFragment extends Fragment implements ActionListener,
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
-        mLoginButton.setPublishPermissions("publish_actions");
-        // If using in a fragment
-        mLoginButton.setFragment(this);
-        // Other app specific specialization
-        mLoginButton.registerCallback(mCallbackManager, mGetCallbackInterface.getFacebookCallback());
 
-        if(AccessToken.getCurrentAccessToken() != null) {
-            getUserInfoRequest();
+        initLoginButton();
+
+        if(AccessToken.getCurrentAccessToken() != null && isNetworkConnected()) {
+            retrieveUserDataRequest();
         }
 
         if (getLoaderManager().getLoader(Constants.BYTE_ARRAY_LOADER_ID) != null) {
@@ -135,24 +136,36 @@ public class FacebookFragment extends Fragment implements ActionListener,
         }
     }
 
+    private void initLoginButton() {
+        mLoginButton.setPublishPermissions("publish_actions");
+        // If using in a fragment
+        mLoginButton.setFragment(this);
+        // Other app specific specialization
+        mLoginButton.registerCallback(mCallbackManager, mGetCallbackInterface.getFacebookCallback());
+    }
+
     private void shareData(){
-        String permissions = "me/feed";
-        Bundle params = new Bundle();
+        if (isNetworkConnected()) {
+            String permissions = "me/feed";
+            Bundle params = new Bundle();
 
-        if(mImageUri != null){
-            params.putByteArray("source", mByteArray);
-            permissions = "me/photos";
+            if (mImageUri != null) {
+                params.putByteArray("source", mByteArray);
+                permissions = "me/photos";
+            }
+
+            params.putString("message", mShareText.getText().toString());
+
+            new GraphRequest(
+                    AccessToken.getCurrentAccessToken(),
+                    permissions,
+                    params,
+                    HttpMethod.POST,
+                    mGetCallbackInterface.getGraphRequestCallback()
+            ).executeAsync();
+        } else {
+            Toast.makeText(getActivity(), getString(R.string.no_connection), Toast.LENGTH_SHORT).show();
         }
-
-        params.putString("message", mShareText.getText().toString());
-
-        new GraphRequest(
-                AccessToken.getCurrentAccessToken(),
-                permissions,
-                params,
-                HttpMethod.POST,
-                mGetCallbackInterface.getGraphRequestCallback()
-        ).executeAsync();
     }
 
     @Override
@@ -195,7 +208,8 @@ public class FacebookFragment extends Fragment implements ActionListener,
         startActivityForResult(intent, Constants.PICK_IMAGE);
     }
 
-    private void getUserInfo(GraphResponse response) {
+    private void parseResponseAndSetUserData(GraphResponse response) {
+        response.getRequest().getTag();
         try {
             String mUrlPictureUser = response.getJSONObject().
                     getJSONObject("picture").
@@ -212,19 +226,20 @@ public class FacebookFragment extends Fragment implements ActionListener,
         }
     }
 
-    private void getUserInfoRequest() {
+    private void retrieveUserDataRequest() {
 
         Bundle parameters = new Bundle();
         parameters.putString("fields", "picture, id, name");
 
         if (mGetCallbackInterface != null) {
-            new GraphRequest(
+            GraphRequest graphRequest = new GraphRequest(
                     AccessToken.getCurrentAccessToken(),
                     "me",
                     parameters,
                     HttpMethod.GET,
-                    mGetCallbackInterface.getGraphRequestCallback()
-            ).executeAsync();
+                    mGetCallbackInterface.getGraphRequestCallback());
+            graphRequest.setTag(Constants.LOGIN_REQUEST_TAG);
+            graphRequest.executeAsync();
         }
     }
 
@@ -238,14 +253,16 @@ public class FacebookFragment extends Fragment implements ActionListener,
 
     @Override
     public void doAction(GraphResponse response) {
-        Log.d(Constants.TAG, response.toString());
-        getUserInfo(response);
-
+        if (response.getRequest().getTag() == Constants.LOGIN_REQUEST_TAG) {
+            parseResponseAndSetUserData(response);
+        } else {
+            notifyUserAboutShareResult(response);
+        }
     }
 
     @Override
     public void doAction(LoginResult loginResult) {
-        getUserInfoRequest();
+        retrieveUserDataRequest();
     }
 
     @Override
@@ -262,7 +279,6 @@ public class FacebookFragment extends Fragment implements ActionListener,
         if (savedInstanceState != null) {
             mImageUri = savedInstanceState.getParcelable(Constants.URI_KEY);
         }
-
     }
 
     @Override
@@ -282,18 +298,34 @@ public class FacebookFragment extends Fragment implements ActionListener,
         Log.d(Constants.TAG, loader + "onLoadFinished");
         mIvSelectedImage.setImageBitmap(data.imageBitmap);
         mByteArray = data.bytes;
-        Toast.makeText(getActivity(), "work finished", Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void onLoaderReset(Loader<ImageModel> loader) {
-
     }
 
     private void initImageLoader() {
         Bundle bundle = new Bundle();
         bundle.putParcelable("uri", mImageUri);
         getLoaderManager().initLoader(Constants.BYTE_ARRAY_LOADER_ID, bundle, this);
+    }
+
+    private boolean isNetworkConnected() {
+        ConnectivityManager cm = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        return cm.getActiveNetworkInfo() != null;
+    }
+
+    private void notifyUserAboutShareResult(GraphResponse response) {
+        try {
+            if (response.getConnection().getResponseCode() == 200) {
+                Toast.makeText(getActivity(), getString(R.string.good_news_everyone), Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(getActivity(), getString(R.string.very_bad), Toast.LENGTH_SHORT).show();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 }
