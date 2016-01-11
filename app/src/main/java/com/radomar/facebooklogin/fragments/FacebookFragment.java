@@ -18,6 +18,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -61,6 +62,7 @@ public class FacebookFragment extends Fragment implements ActionListener,
     private TextView mUserInfo;
     private Button mShare;
     private Button mBtSelectImage;
+    private ProgressBar mProgressBar;
 
     private Uri mImageUri;
     private byte[] mByteArray;
@@ -163,6 +165,7 @@ public class FacebookFragment extends Fragment implements ActionListener,
                     HttpMethod.POST,
                     mGetCallbackInterface.getGraphRequestCallback()
             ).executeAsync();
+            mProgressBar.setVisibility(View.VISIBLE);
         } else {
             Toast.makeText(getActivity(), getString(R.string.no_connection), Toast.LENGTH_SHORT).show();
         }
@@ -187,14 +190,14 @@ public class FacebookFragment extends Fragment implements ActionListener,
     }
 
     private void findViews(View view) {
-        mLoginButton = (LoginButton) view.findViewById(R.id.loginButton_FF);
-        mImageViewPictureUser = (ImageView) view.findViewById(R.id.ivUserPhoto_FF);
-        mUserInfo = (TextView) view.findViewById(R.id.tvUserInfo_FF);
-
-        mBtSelectImage = (Button) view.findViewById(R.id.btSelectPhoto_FF);
-        mIvSelectedImage = (ImageView) view.findViewById(R.id.ivSelectedImage_FF);
-        mShareText = (EditText) view.findViewById(R.id.etTextShare_FF);
-        mShare = (Button) view.findViewById(R.id.btShare_FF);
+        mLoginButton          =  (LoginButton)  view.findViewById(R.id.loginButton_FF);
+        mImageViewPictureUser =  (ImageView)    view.findViewById(R.id.ivUserPhoto_FF);
+        mUserInfo             =  (TextView)     view.findViewById(R.id.tvUserInfo_FF);
+        mBtSelectImage        =  (Button)       view.findViewById(R.id.btSelectPhoto_FF);
+        mIvSelectedImage      =  (ImageView)    view.findViewById(R.id.ivSelectedImage_FF);
+        mShareText            =  (EditText)     view.findViewById(R.id.etTextShare_FF);
+        mShare                =  (Button)       view.findViewById(R.id.btShare_FF);
+        mProgressBar          =  (ProgressBar)  view.findViewById(R.id.pbProgressBar_FF);
     }
 
     private void setListener() {
@@ -258,6 +261,7 @@ public class FacebookFragment extends Fragment implements ActionListener,
         } else {
             notifyUserAboutShareResult(response);
         }
+        mProgressBar.setVisibility(View.INVISIBLE);
     }
 
     @Override
@@ -291,7 +295,6 @@ public class FacebookFragment extends Fragment implements ActionListener,
         }
         return mLoader;
     }
-
 
     @Override
     public void onLoadFinished(Loader<ImageModel> loader, ImageModel data) {
