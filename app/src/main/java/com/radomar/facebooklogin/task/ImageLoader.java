@@ -57,12 +57,15 @@ public class ImageLoader extends AsyncTaskLoader<ImageModel> {
 
         int len;
         try {
-            while ((len = inputStream.read(buffer)) != -1) {
-                byteBuffer.write(buffer, 0, len);
+            if (inputStream != null) {
+                while ((len = inputStream.read(buffer)) != -1) {
+                    byteBuffer.write(buffer, 0, len);
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
+
         return byteBuffer.toByteArray();
     }
 
