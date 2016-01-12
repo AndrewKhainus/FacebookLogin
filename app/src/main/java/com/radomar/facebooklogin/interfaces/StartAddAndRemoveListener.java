@@ -5,6 +5,7 @@ package com.radomar.facebooklogin.interfaces;
  */
 public interface StartAddAndRemoveListener {
 
+    //TODO: rename methods accordingly Java Code Conventions
     void StartAddListener(ActionListener listener);
 
     void StartRemoveListener(ActionListener listener);

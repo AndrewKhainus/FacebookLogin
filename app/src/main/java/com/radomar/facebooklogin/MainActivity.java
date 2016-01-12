@@ -16,8 +16,8 @@ import com.radomar.facebooklogin.fragments.RequestFragment;
 import com.radomar.facebooklogin.global.Constants;
 import com.radomar.facebooklogin.interfaces.ActionListener;
 import com.radomar.facebooklogin.interfaces.GetCallbackInterface;
-import com.radomar.facebooklogin.interfaces.StartAddAndRemoveListener;
 import com.radomar.facebooklogin.interfaces.PublisherInterface;
+import com.radomar.facebooklogin.interfaces.StartAddAndRemoveListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,6 +60,7 @@ public class MainActivity extends AppCompatActivity implements StartAddAndRemove
     }
 
     private void startFacebookFragment() {
+        //TODO: here you can use fragmentId instead of tag
         FacebookFragment facebookFragment = (FacebookFragment) mFragmentManager.findFragmentByTag(Constants.FACEBOOK_FRAGMENT_TAG);
 
         if (facebookFragment == null) {

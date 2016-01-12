@@ -1,10 +1,8 @@
 package com.radomar.facebooklogin.fragments;
 
 import android.app.Activity;
-
 import android.content.Context;
 import android.content.Intent;
-
 import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.Bundle;
@@ -120,7 +118,7 @@ public class FacebookFragment extends Fragment implements ActionListener,
             retrieveUserDataRequest();
         }
 
-        if (getLoaderManager().getLoader(Constants.BYTE_ARRAY_LOADER_ID) != null) {
+        if (getLoaderManager().getLoader(Constants.BYTE_ARRAY_LOADER_ID) != null) {//TODO: unnecessary check; you can just use initLoader
             Log.d(Constants.TAG, "onCreate initImageLoader");
             initImageLoader();
         }
@@ -179,8 +177,10 @@ public class FacebookFragment extends Fragment implements ActionListener,
             Bundle bundle = new Bundle();
             bundle.putParcelable(Constants.LOADER_URI_KEY, mImageUri);
 
+            //TODO: unnecessary check; should use ony restartLoader
             if (getLoaderManager().getLoader(Constants.BYTE_ARRAY_LOADER_ID) != null) {
                 getLoaderManager().restartLoader(Constants.BYTE_ARRAY_LOADER_ID, bundle, this).forceLoad();
+                //TODO: you shouldn't call forceLoad() here; http://www.androiddesignpatterns.com/2012/08/implementing-loaders.html
             } else {
                 getLoaderManager().initLoader(Constants.BYTE_ARRAY_LOADER_ID, bundle, this).forceLoad();
             }
@@ -272,7 +272,7 @@ public class FacebookFragment extends Fragment implements ActionListener,
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        if (mImageUri != null) {
+        if (mImageUri != null) {//TODO: unnecessary check; second argument has @Nullable annotation
             outState.putParcelable(Constants.URI_KEY, mImageUri);
         }
     }
@@ -309,7 +309,7 @@ public class FacebookFragment extends Fragment implements ActionListener,
 
     private void initImageLoader() {
         Bundle bundle = new Bundle();
-        bundle.putParcelable("uri", mImageUri);
+        bundle.putParcelable("uri", mImageUri);//TODO: use const for key
         getLoaderManager().initLoader(Constants.BYTE_ARRAY_LOADER_ID, bundle, this);
     }
 
