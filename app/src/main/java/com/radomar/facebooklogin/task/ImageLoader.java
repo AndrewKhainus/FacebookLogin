@@ -24,22 +24,37 @@ import java.io.InputStream;
 public class ImageLoader extends AsyncTaskLoader<ImageModel> {
 
     private Uri mUri;
-    private final static String TAG = "sometag";
+    private ImageModel mImageModel;
 
     public ImageLoader(Context context, Bundle args) {
         super(context);
         if (args != null) {
             mUri = args.getParcelable(Constants.LOADER_URI_KEY);
-            Log.d(TAG, this + "constructor, new Uri");
+            Log.d(Constants.TAG, this + "constructor, new Uri");
         }
     }
 
     @Override
     public ImageModel loadInBackground() {
+        Log.d(Constants.TAG, this + "loadInBackground");
         String pathFromURI = getRealPathFromURI(mUri);
 
-        return new ImageModel(decodeSampledBitmapFromImage(pathFromURI, 150, 150),
-                              getByteArrayFromImage());
+        mImageModel = new ImageModel(decodeSampledBitmapFromImage(pathFromURI, 150, 150),
+                                     getByteArrayFromImage());
+
+        return mImageModel;
+    }
+
+    @Override
+    protected void onStartLoading() {
+        Log.d(Constants.TAG, this + "onStartLoading");
+        if (mImageModel != null) {
+            deliverResult(mImageModel);
+        }
+
+        if (mUri != null && mImageModel == null) {
+            forceLoad();
+        }
     }
 
     private byte[] getByteArrayFromImage() {
@@ -52,7 +67,7 @@ public class ImageLoader extends AsyncTaskLoader<ImageModel> {
 
         ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
 
-        int bufferSize = 64;
+        int bufferSize = 4;
         byte[] buffer = new byte[bufferSize];
 
         int len;
@@ -69,7 +84,7 @@ public class ImageLoader extends AsyncTaskLoader<ImageModel> {
         return byteBuffer.toByteArray();
     }
 
-    public Bitmap decodeSampledBitmapFromImage(String pathName, int reqWidth, int reqHeight) {
+    private Bitmap decodeSampledBitmapFromImage(String pathName, int reqWidth, int reqHeight) {
 
         final BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = true;
@@ -84,7 +99,7 @@ public class ImageLoader extends AsyncTaskLoader<ImageModel> {
         return BitmapFactory.decodeFile(pathName, options);
     }
 
-    private static int calculateInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight) {
+    private int calculateInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight) {
         // Raw height and width of image
         final int height = options.outHeight;
         final int width = options.outWidth;
@@ -118,21 +133,4 @@ public class ImageLoader extends AsyncTaskLoader<ImageModel> {
         return result;
     }
 
-    @Override
-    protected void onStartLoading() {
-        super.onStartLoading();
-        Log.d(TAG, this + "onStartLoading");
-    }
-
-    @Override
-    protected void onForceLoad() {
-        super.onForceLoad();
-        Log.d(TAG, this + "onForceLoad");
-    }
-
-    @Override
-    public void onCanceled(ImageModel data) {
-        super.onCanceled(data);
-        Log.d(TAG, this + "onCanceled");
-    }
 }

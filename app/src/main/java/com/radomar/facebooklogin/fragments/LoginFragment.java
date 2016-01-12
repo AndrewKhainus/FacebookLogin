@@ -21,8 +21,15 @@ public class LoginFragment extends Fragment implements FacebookCallback<LoginRes
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
-        Log.d("sometag", "LoginFragment onAttach");
+//        Log.d("sometag", "LoginFragment onAttach");
         mPublisherInterface = (PublisherInterface)activity;
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+//        Log.d("sometag", "LoginFragment onCreate");
+        setRetainInstance(true);
     }
 
     @Override
@@ -32,15 +39,8 @@ public class LoginFragment extends Fragment implements FacebookCallback<LoginRes
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        Log.d("sometag", "LoginFragment onCreate");
-        setRetainInstance(true);
-    }
-
-    @Override
     public void onSuccess(LoginResult loginResult) {
-        Log.d("sometag", "LoginFragment onSuccess");
+//        Log.d("sometag", "LoginFragment onSuccess");
         mLoginResult = loginResult;
         //TODO: may cause NPE
         mPublisherInterface.notifySubscribers(loginResult);
@@ -48,12 +48,12 @@ public class LoginFragment extends Fragment implements FacebookCallback<LoginRes
 
     @Override
     public void onCancel() {
-        Log.d("sometag", "LoginFragment onCancel");
+//        Log.d("sometag", "LoginFragment onCancel");
     }
 
     @Override
     public void onError(FacebookException error) {
-        Log.d("sometag", "LoginFragment onError");
+//        Log.d("sometag", "LoginFragment onError");
     }
 
     public LoginResult getLoginResult() {

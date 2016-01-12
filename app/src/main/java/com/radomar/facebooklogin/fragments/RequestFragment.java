@@ -20,8 +20,15 @@ public class RequestFragment extends Fragment implements GraphRequest.Callback {
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
-        Log.d("sometag", "RequestFragment onAttach");
+//        Log.d("sometag", "RequestFragment onAttach");
         mPublisherInterface = (PublisherInterface)activity;
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+//        Log.d("sometag", "RequestFragment onCreate");
+        setRetainInstance(true);
     }
 
     @Override
@@ -31,15 +38,8 @@ public class RequestFragment extends Fragment implements GraphRequest.Callback {
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        Log.d("sometag", "RequestFragment onCreate");
-        setRetainInstance(true);
-    }
-
-    @Override
     public void onCompleted(GraphResponse response) {
-        Log.d("sometag", "RequestFragment onCompleted");
+//        Log.d("sometag", "RequestFragment onCompleted");
         mResponse = response;
         //TODO: may cause NPE
         mPublisherInterface.notifySubscribers(response);
