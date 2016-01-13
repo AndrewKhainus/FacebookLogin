@@ -42,8 +42,9 @@ public class LoginFragment extends Fragment implements FacebookCallback<LoginRes
     public void onSuccess(LoginResult loginResult) {
 //        Log.d("sometag", "LoginFragment onSuccess");
         mLoginResult = loginResult;
-        //TODO: may cause NPE
-        mPublisherInterface.notifySubscribers(loginResult);
+        if (loginResult != null) {
+            mPublisherInterface.notifySubscribers(loginResult);
+        }
     }
 
     @Override

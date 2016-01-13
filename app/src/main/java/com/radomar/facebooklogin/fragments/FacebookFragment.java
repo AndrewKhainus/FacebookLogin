@@ -32,7 +32,7 @@ import com.radomar.facebooklogin.R;
 import com.radomar.facebooklogin.global.Constants;
 import com.radomar.facebooklogin.interfaces.ActionListener;
 import com.radomar.facebooklogin.interfaces.GetCallbackInterface;
-import com.radomar.facebooklogin.interfaces.StartAddAndRemoveListener;
+import com.radomar.facebooklogin.interfaces.OnStartAddAndRemoveListener;
 import com.radomar.facebooklogin.model.ImageModel;
 import com.radomar.facebooklogin.task.ImageLoader;
 import com.squareup.picasso.Picasso;
@@ -49,7 +49,7 @@ public class FacebookFragment extends Fragment implements ActionListener,
                                                           LoaderManager.LoaderCallbacks<ImageModel> {
 
 
-    private StartAddAndRemoveListener mStartAddAndRemoveListener;
+    private OnStartAddAndRemoveListener mOnStartAddAndRemoveListener;
     private GetCallbackInterface mGetCallbackInterface;
 
     private LoginButton mLoginButton;
@@ -71,7 +71,7 @@ public class FacebookFragment extends Fragment implements ActionListener,
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         Log.d("sometag", "onAttach");
-        mStartAddAndRemoveListener = (StartAddAndRemoveListener) activity;
+        mOnStartAddAndRemoveListener = (OnStartAddAndRemoveListener) activity;
         mGetCallbackInterface = (GetCallbackInterface) activity;
     }
 
@@ -117,11 +117,11 @@ public class FacebookFragment extends Fragment implements ActionListener,
         }
     }
 
-    @Override
-    public void onStart() {
+        @Override
+        public void onStart() {
         Log.d("sometag","onStart");
         super.onStart();
-        mStartAddAndRemoveListener.StartAddListener(this);
+        mOnStartAddAndRemoveListener.onStartAddListener(this);
     }
 
     @Override
@@ -135,13 +135,13 @@ public class FacebookFragment extends Fragment implements ActionListener,
     public void onStop() {
         Log.d("sometag", "onStop");
         super.onStop();
-        mStartAddAndRemoveListener.StartRemoveListener(this);
+        mOnStartAddAndRemoveListener.onStartRemoveListener(this);
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
-        mStartAddAndRemoveListener = null;
+        mOnStartAddAndRemoveListener = null;
         mGetCallbackInterface = null;
     }
 

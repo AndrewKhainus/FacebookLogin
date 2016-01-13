@@ -41,8 +41,9 @@ public class RequestFragment extends Fragment implements GraphRequest.Callback {
     public void onCompleted(GraphResponse response) {
 //        Log.d("sometag", "RequestFragment onCompleted");
         mResponse = response;
-        //TODO: may cause NPE
-        mPublisherInterface.notifySubscribers(response);
+        if (response != null) {
+            mPublisherInterface.notifySubscribers(response);
+        }
     }
 
     public GraphResponse getResponse() {

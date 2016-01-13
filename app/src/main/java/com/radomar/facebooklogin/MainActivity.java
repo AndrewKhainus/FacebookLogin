@@ -17,12 +17,12 @@ import com.radomar.facebooklogin.global.Constants;
 import com.radomar.facebooklogin.interfaces.ActionListener;
 import com.radomar.facebooklogin.interfaces.GetCallbackInterface;
 import com.radomar.facebooklogin.interfaces.PublisherInterface;
-import com.radomar.facebooklogin.interfaces.StartAddAndRemoveListener;
+import com.radomar.facebooklogin.interfaces.OnStartAddAndRemoveListener;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements StartAddAndRemoveListener,
+public class MainActivity extends AppCompatActivity implements OnStartAddAndRemoveListener,
                                                                PublisherInterface,
                                                                GetCallbackInterface {
 
@@ -117,12 +117,12 @@ public class MainActivity extends AppCompatActivity implements StartAddAndRemove
     }
 
     @Override
-    public void StartAddListener(ActionListener listener) {
+    public void onStartAddListener(ActionListener listener) {
         addListener(listener);
     }
 
     @Override
-    public void StartRemoveListener(ActionListener listener) {
+    public void onStartRemoveListener(ActionListener listener) {
         removeListener(listener);
     }
 
